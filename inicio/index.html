@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Neal&Gel - Agendamento</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body, html {
+      margin: 0;
+      height: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(120deg, #e0f7fa, #fce4ec);
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Menu topo */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #2196f3;
+      color: white;
+      padding: 15px 30px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 10;
+    }
+
+    header .logo {
+      font-size: 24px;
+      font-weight: bold;
+      cursor: default;
+      user-select: none;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    nav button {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+      user-select: none;
+    }
+
+    nav button:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Redes sociais no topo */
+    .redes-sociais {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .redes-sociais a {
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      transition: color 0.3s;
+      user-select: none;
+    }
+
+    .redes-sociais a:hover {
+      color: #90caf9;
+    }
+
+    /* Container principal - ajustar margem para o menu fixo */
+    #container, #historico, #servicosInfo, #confirmacao {
+      max-width: 700px;
+      width: 100%;
+      margin: 100px auto 80px auto; /* espaço para menu e rodapé */
+      padding: 0 15px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    /* Confirmacao */
+    #confirmacao {
+      display: none;
+      padding: 40px;
+      color: #388e3c;
+      text-align: center;
+    }
+
+    #confirmacao h1 {
+      font-size: 32px;
+      margin-bottom: 20px;
+    }
+
+    #confirmacao p {
+      font-size: 20px;
+      line-height: 1.4;
+    }
+
+    /* Agendamento */
+    .semana {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      width: 100%;
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #555;
+    }
+
+    .semana div {
+      user-select: none;
+    }
+
+    .dias {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    .dia {
+      background-color: #ffffff;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      padding: 15px;
+      text-align: center;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      user-select: none;
+    }
+
+    .dia:hover {
+      background-color: #4caf50;
+      color: white;
+      transform: scale(1.05);
+      border-color: #388e3c;
+    }
+
+    .dia.vazio {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      cursor: default;
+    }
+
+    .etapa {
+      display: none;
+      padding-bottom: 20px;
+    }
+
+    .etapa.active {
+      display: block;
+    }
+
+    .etapa h2 {
+      margin-bottom: 15px;
+      font-size: 20px;
+      color: #444;
+    }
+
+    .item {
+      display: inline-block;
+      margin: 6px;
+      padding: 10px 18px;
+      background-color: #2196f3;
+      color: white;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      user-select: none;
+    }
+
+    .item:hover {
+      background-color: #1976d2;
+    }
+
+    /* Seções História e Serviços */
+    #historico, #servicosInfo {
+      display: none;
+      padding: 30px;
+      color: #444;
+      line-height: 1.6;
+    }
+
+    #historico.active, #servicosInfo.active {
+      display: block;
+    }
+
+    /* Formulário de dados pessoais */
+    #formDados {
+      display: none;
+      padding: 30px;
+    }
+
+    #formDados.active {
+      display: block;
+    }
+
+    #formDados h2 {
+      margin-bottom: 20px;
+      color: #444;
+    }
+
+    #formDados form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      max-width: 400px;
+    }
+
+    #formDados label {
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: #333;
+    }
+
+    #formDados input {
+      padding: 10px 12px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1.8px solid #ccc;
+      transition: border-color 0.3s;
+    }
+
+    #formDados input:focus {
+      border-color: #2196f3;
+      outline: none;
+    }
+
+    #formDados button {
+      padding: 12px;
+      background-color: #2196f3;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      user-select: none;
+    }
+
+    #formDados button:hover {
+      background-color: #1976d2;
+    }
+
+    /* Rodapé */
+    footer {
+      background-color: #1976d2;
+      color: white;
+      padding: 15px 30px;
+      text-align: center;
+      font-size: 14px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.2);
+      user-select: none;
+    }
+
+    footer span {
+      display: inline-block;
+      margin: 0 12px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">Neal&amp;Gel</div>
+    <nav>
+      <button id="btnMenuInicial">Agendamento</button>
+      <button id="btnHistorico">História da Marca</button>
+      <button id="btnServicos">Nossos Serviços</button>
+      <div class="redes-sociais" aria-label="Redes Sociais">
+        <a href="https://www.facebook.com/nealandgel" target="_blank" title="Facebook" rel="noopener noreferrer" aria-label="Facebook">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="20" height="20" viewBox="0 0 24 24"><path d="M22 12a10 10 0 10-11.5 9.87v-7h-2v-3h2v-2.2c0-2 1.2-3.1 3-3.1.87 0 1.78.15 1.78.15v2h-1c-1 0-1.3.63-1.3 1.27V12h2.23l-.36 3h-1.87v7A10 10 0 0022 12"/></svg>
+        </a>
+        <a href="https://www.instagram.com/nealandgel" target="_blank" title="Instagram" rel="noopener noreferrer" aria-label="Instagram">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="20" height="20" viewBox="0 0 24 24"><path d="M7.75 2h8.5A5.75 5.75 0 0122 7.75v8.5A5.75 5.75 0 0116.25 22h-8.5A5.75 5.75 0 012 16.25v-8.5A5.75 5.75 0 017.75 2zm0 2A3.75 3.75 0 004 7.75v8.5A3.75 3.75 0 007.75 20h8.5a3.75 3.75 0 003.75-3.75v-8.5A3.75 3.75 0 0016.25 4h-8.5zm8 1.5a1 1 0 110 2 1 1 0 010-2zM12 7a5 5 0 110 10 5 5 0 010-10z"/></svg>
+        </a>
+        <a href="https://twitter.com/nealandgel" target="_blank" title="Twitter" rel="noopener noreferrer" aria-label="Twitter">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="20" height="20" viewBox="0 0 24 24"><path d="M22.46 6c-.77.35-1.6.58-2.46.69a4.28 4.28 0 001.88-2.37 8.64 8.64 0 01-2.71 1.03 4.27 4.27 0 00-7.28 3.9A12.14 12.14 0 013 5.16a4.26 4.26 0 001.32 5.7 4.2 4.2 0 01-1.93-.53v.05a4.27 4.27 0 003.42 4.18 4.27 4.27 0 01-1.92.07 4.28 4.28 0 003.99 2.97A8.56 8.56 0 012 19.54a12.07 12.07 0 006.54 1.92c7.85 0 12.15-6.5 12.15-12.14 0-.18 0-.35-.01-.53A8.7 8.7 0 0022.46 6z"/></svg>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <main style="flex-grow: 1; display: flex; justify-content: center; align-items: flex-start; padding-top: 20px;">
+    <!-- Formulário de dados pessoais -->
+    <section id="formDados" class="active" aria-label="Formulário de dados pessoais">
+      <h2>Informe seus dados para agendar</h2>
+      <form id="dadosForm" novalidate>
+        <label for="nome">Nome completo:</label>
+        <input type="text" id="nome" name="nome" required aria-required="true" autocomplete="name" />
+        
+        <label for="telefone">Telefone:</label>
+        <input type="tel" id="telefone" name="telefone" pattern="[0-9\s()+-]{8,15}" required aria-required="true" autocomplete="tel" placeholder="(XX) XXXXX-XXXX" />
+        
+        <label for="email">E-mail:</label>
+        <input type="email" id="email" name="email" required aria-required="true" autocomplete="email" placeholder="exemplo@email.com" />
+        
+        <button type="submit">Continuar para agendamento</button>
+      </form>
+    </section>
+
+    <!-- Calendário e agendamento -->
+    <section id="container" aria-label="Escolha do dia" style="display:none;">
+      <h2>Escolha um dia do mês de maio de 2025</h2>
+      <div class="semana" aria-label="Dias da semana">
+        <div>D</div><div>S</div><div>T</div><div>Q</div><div>Q</div><div>S</div><div>S</div>
+      </div>
+      <div class="dias" role="grid" aria-label="Calendário do mês de maio de 2025"></div>
+    </section>
+
+    <!-- Serviços -->
+    <section id="servicosContainer" class="etapa" aria-label="Escolha do serviço">
+      <h2>Serviços disponíveis para o dia <span id="dataSelecionada"></span>/05/2025</h2>
+      <div id="listaServicos" role="list"></div>
+    </section>
+
+    <!-- Horários -->
+    <section id="horariosContainer" class="etapa" aria-label="Escolha do horário">
+      <h2>Horários para o serviço <span id="servicoSelecionado"></span> no dia <span id="diaSelecionado"></span>/05/2025</h2>
+      <div id="listaHorarios" role="list"></div>
+    </section>
+
+    <!-- Confirmação -->
+    <section id="confirmacao" aria-live="polite" role="alert">
+      <h1>Bem-vinda ao Neal&amp;Gel!</h1>
+      <p id="mensagemConfirmacao"></p>
+    </section>
+
+    <!-- História da marca -->
+    <section id="historico" aria-label="História da marca">
+      <h2>História da Neal&amp;Gel</h2>
+      <p>
+        A Neal&amp;Gel nasceu em 2018 com o propósito de trazer beleza e confiança para nossas clientes.
+        Nosso foco são serviços especializados em unhas, utilizando técnicas modernas e produtos de alta qualidade.
+        Buscamos proporcionar uma experiência única e acolhedora para cada pessoa que nos visita.
+      </p>
+    </section>
+
+    <!-- Nossos serviços -->
+    <section id="servicosInfo" aria-label="Nossos serviços">
+      <h2>Nossos Serviços</h2>
+      <ul>
+        <li>Alongamento de unhas</li>
+        <li>Esmaltação em gel</li>
+        <li>Cutilagem</li>
+        <li>Unha de fibra</li>
+        <li>Banho de gel</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <span>CNPJ: 12.345.678/0001-90</span> |
+    <span>Neal&amp;Gel</span> |
+    <span>Telefone: (11) 98765-4321</span> |
+    <span>Email: contato@nealandgel.com</span>
+  </footer>
+
+  <script>
+    // Dados do cliente guardados aqui
+    let cliente = {
+      nome: '',
+      telefone: '',
+      email: ''
+    };
+
+    const servicos = [
+      "Alongamento",
+      "Esmaltação em gel",
+      "Cutilagem",
+      "Unha de fibra",
+      "Banho de gel"
+    ];
+
+    const horariosPadrao = [
+      "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"
+    ];
+
+    const diasContainer = document.querySelector(".dias");
+    const servicosContainer = document.getElementById("servicosContainer");
+    const horariosContainer = document.getElementById("horariosContainer");
+    const confirmacaoContainer = document.getElementById("confirmacao");
+    const mensagemConfirmacao = document.getElementById("mensagemConfirmacao");
+
+    const containerPrincipal = document.getElementById("container");
+    const listaServicos = document.getElementById("listaServicos");
+    const listaHorarios = document.getElementById("listaHorarios");
+
+    const dataSelecionada = document.getElementById("dataSelecionada");
+    const servicoSelecionado = document.getElementById("servicoSelecionado");
+    const diaSelecionado = document.getElementById("diaSelecionado");
+
+    const formDados = document.getElementById("formDados");
+    const dadosForm = document.getElementById("dadosForm");
+
+    const btnMenuInicial = document.getElementById("btnMenuInicial");
+    const btnHistorico = document.getElementById("btnHistorico");
+    const btnServicos = document.getElementById("btnServicos");
+
+    const historico = document.getElementById("historico");
+    const servicosInfo = document.getElementById("servicosInfo");
+
+    let diaAtual = null;
+
+    // Inicializar calendário para maio de 2025
+    function iniciarCalendario() {
+      diasContainer.innerHTML = "";
+      const totalDias = 31;
+
+      // Maio de 2025 começa numa quinta-feira (index 4, Domingo=0)
+      // Vamos deixar os primeiros 4 dias vazios para alinhar
+      for(let i = 0; i < 4; i++) {
+        const vazio = document.createElement("div");
+        vazio.className = "dia vazio";
+        diasContainer.appendChild(vazio);
+      }
+
+      for (let dia = 1; dia <= totalDias; dia++) {
+        const diaElem = document.createElement("div");
+        diaElem.className = "dia";
+        diaElem.textContent = dia;
+        diaElem.tabIndex = 0;
+        diaElem.setAttribute("role", "button");
+        diaElem.setAttribute("aria-label", `Dia ${dia} de maio de 2025`);
+
+        diaElem.addEventListener("click", () => {
+          diaAtual = dia;
+          mostrarServicos(dia);
+        });
+
+        diaElem.addEventListener("keydown", (e) => {
+          if(e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            diaElem.click();
+          }
+        });
+
+        diasContainer.appendChild(diaElem);
+      }
+    }
+
+    // Esconde todas as seções principais (exceto menu e footer)
+    function esconderTodasSecoes() {
+      containerPrincipal.style.display = "none";
+      servicosContainer.classList.remove("active");
+      horariosContainer.classList.remove("active");
+      confirmacaoContainer.style.display = "none";
+      historico.style.display = "none";
+      servicosInfo.style.display = "none";
+      formDados.classList.remove("active");
+    }
+
+    // Mostrar formulário de dados pessoais
+    function mostrarFormDados() {
+      esconderTodasSecoes();
+      formDados.classList.add("active");
+    }
+
+    // Mostrar serviços disponíveis
+    function mostrarServicos(dia) {
+      esconderTodasSecoes();
+      containerPrincipal.style.display = "block";
+      servicosContainer.classList.add("active");
+      horariosContainer.classList.remove("active");
+
+      dataSelecionada.textContent = dia;
+
+      listaServicos.innerHTML = "";
+      servicos.forEach((servico) => {
+        const btn = document.createElement("div");
+        btn.className = "item";
+        btn.textContent = servico;
+        btn.tabIndex = 0;
+        btn.setAttribute("role", "button");
+        btn.setAttribute("aria-label", `Escolher serviço ${servico}`);
+
+        btn.addEventListener("click", () => {
+          mostrarHorarios(servico, dia);
+        });
+        btn.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            btn.click();
+          }
+        });
+
+        listaServicos.appendChild(btn);
+      });
+    }
+
+    // Mostrar horários disponíveis para o serviço escolhido
+    function mostrarHorarios(servico, dia) {
+      servicosContainer.classList.remove("active");
+      horariosContainer.classList.add("active");
+
+      servicoSelecionado.textContent = servico;
+      diaSelecionado.textContent = dia;
+
+      listaHorarios.innerHTML = "";
+      horariosPadrao.forEach((hora) => {
+        const btn = document.createElement("div");
+        btn.className = "item";
+        btn.textContent = hora;
+        btn.tabIndex = 0;
+        btn.setAttribute("role", "button");
+        btn.setAttribute("aria-label", `Escolher horário ${hora}`);
+
+        btn.addEventListener("click", () => {
+          confirmarAgendamento(servico, dia, hora);
+        });
+        btn.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            btn.click();
+          }
+        });
+
+        listaHorarios.appendChild(btn);
+      });
+    }
+
+    // Confirmação do agendamento
+    function confirmarAgendamento(servico, dia, hora) {
+      esconderTodasSecoes();
+
+      confirmacaoContainer.style.display = "flex";
+      confirmacaoContainer.style.flexDirection = "column";
+      confirmacaoContainer.style.justifyContent = "center";
+      confirmacaoContainer.style.alignItems = "center";
+      confirmacaoContainer.style.height = "calc(100vh - 80px)";
+
+      mensagemConfirmacao.textContent = 
+        `Olá ${cliente.nome}, seu agendamento para o serviço "${servico}" no dia ${dia}/05/2025 às ${hora} foi confirmado!`;
+
+      // Pode adicionar aqui código para salvar no backend se desejar
+    }
+
+    // Validação e submissão do formulário de dados pessoais
+    dadosForm.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const nome = dadosForm.nome.value.trim();
+      const telefone = dadosForm.telefone.value.trim();
+      const email = dadosForm.email.value.trim();
+
+      if(!nome) {
+        alert("Por favor, preencha seu nome completo.");
+        dadosForm.nome.focus();
+        return;
+      }
+
+      // Telefone básico: só verifica se tem pelo menos 8 dígitos
+      if(!telefone.match(/^[0-9\s()+-]{8,15}$/)) {
+        alert("Por favor, preencha um telefone válido.");
+        dadosForm.telefone.focus();
+        return;
+      }
+
+      // Email básico
+      if(!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+        alert("Por favor, preencha um e-mail válido.");
+        dadosForm.email.focus();
+        return;
+      }
+
+      // Salvar dados
+      cliente.nome = nome;
+      cliente.telefone = telefone;
+      cliente.email = email;
+
+      // Mostrar calendário para seguir no agendamento
+      iniciarCalendario();
+      esconderTodasSecoes();
+      containerPrincipal.style.display = "block";
+      servicosContainer.classList.remove("active");
+      horariosContainer.classList.remove("active");
+      formDados.classList.remove("active");
+    });
+
+    // Botões do menu topo
+    btnMenuInicial.addEventListener("click", () => {
+      esconderTodasSecoes();
+      mostrarFormDados();
+    });
+
+    btnHistorico.addEventListener("click", () => {
+      esconderTodasSecoes();
+      historico.style.display = "block";
+    });
+
+    btnServicos.addEventListener("click", () => {
+      esconderTodasSecoes();
+      servicosInfo.style.display = "block";
+    });
+
+    // Inicializa mostrando o formulário de dados pessoais
+    mostrarFormDados();
+
+  </script>
+</body>
+</html>
